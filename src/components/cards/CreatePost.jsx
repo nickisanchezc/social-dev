@@ -1,14 +1,15 @@
-import styled from 'styled-components'
-import { useForm } from 'react-hook-form'
-import { joiResolver } from '@hookform/resolvers/joi'
-import axios from 'axios'
-import { useSWRConfig } from 'swr'
+import { useState } from 'react';
+import styled from 'styled-components';
+import { useForm } from 'react-hook-form';
+import { joiResolver } from '@hookform/resolvers/joi';
+import axios from 'axios';
+import { useSWRConfig } from 'swr';
 
-import { createPostSchema } from '../../../modules/post/post.schema'
+import { createPostSchema } from '../../../modules/post/post.schema';
 
-import H4 from '../typography/H4'
-import ControlledTextarea from '../inputs/ControlledTextarea'
-import Button from '../inputs/Button'
+import H4 from '../typography/H4';
+import ControlledTextarea from '../inputs/ControlledTextarea';
+import Button from '../inputs/Button';
 
 const PostContainer = styled.div`
   background-color: ${props => props.theme.white};
@@ -17,17 +18,17 @@ const PostContainer = styled.div`
   @media (max-width: 500px) {
     padding: 20px;
   }
-`
+`;
 
 const Title = styled.div`
   font-weight: bold;
   text-align: center;
-`
+`;
 
 const TextContainer = styled.div`
   margin: 20px 0;
   width: 100%;
-`
+`;
 
 const BottomContainer = styled.div`
   display: flex;
@@ -37,26 +38,29 @@ const BottomContainer = styled.div`
   @media (max-width: 500px) {
     flex-direction: column-reverse;
   }
-`
+`;
 
 const BottomText = styled.p`
   flex: 1;
-`
+`;
 
 function CreatePost ({ username }) {
-  const { mutate } = useSWRConfig()
+  const { mutate } = useSWRConfig();
+  const [loading, setLoading] = useState(false); 
   const { control, handleSubmit, formState: { isValid }, reset } = useForm({
     resolver: joiResolver(createPostSchema),
     mode: 'all'
-  })
+  });
 
   const onSubmit = async (data) => {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/post`, data)
+    setLoading(true); 
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/post`, data);
     if (response.status === 201) {
-      reset()
-      mutate(`${process.env.NEXT_PUBLIC_API_URL}/api/post`)
+      reset();
+      mutate(`${process.env.NEXT_PUBLIC_API_URL}/api/post`);
     }
-  }
+    setLoading(false);
+  };
 
   return (
     <PostContainer>
@@ -73,11 +77,13 @@ function CreatePost ({ username }) {
         </TextContainer>
         <BottomContainer>
           <BottomText>A sua mensagem será pública.</BottomText>
-          <Button disabled={!isValid}>Postar mensagem</Button>
+          <Button loading={loading} disabled={!isValid}>
+            {loading ? 'Carregando...' : 'Postar mensagem'}
+          </Button>
         </BottomContainer>
       </form>
     </PostContainer>
-  )
+  );
 }
 
-export default CreatePost
+export default CreatePost;

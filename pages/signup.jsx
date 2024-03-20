@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { joiResolver } from '@hookform/resolvers/joi'
 import axios from 'axios'
@@ -30,12 +31,14 @@ const Text = styled.p`
 `
 
 function SignupPage () {
+  const [loading, setLoading] = useState(false);
   const router = useRouter()
   const { control, handleSubmit, formState: { errors }, setError } = useForm({
     resolver: joiResolver(signupSchema)
   })
 
   const handleForm = async (data) => {
+    setLoading(true)
     try {
       const { status } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/user/signup`, data)
       if (status === 201) {
@@ -47,8 +50,10 @@ function SignupPage () {
           type: 'duplicated'
         })
       }
+    } finally {
+        setLoading(false)
     }
-  }
+  };
 
   return (
     <ImageWithSpace>
@@ -62,7 +67,9 @@ function SignupPage () {
           <Input label="Usuário" name="user" control={control} />
           <Input label="Email" type="email" name="email" control={control} />
           <Input label="Senha" type="password" name="password" control={control} />
-          <Button type="submit" disabled={Object.keys(errors).length > 0}>Cadastrar</Button>
+          <Button loading={loading} type="submit" disabled={Object.keys(errors).length > 0 || loading}>
+            {loading ? 'Carregando...' : 'Cadastrar'} {/* Altere o texto do botão para "Carregando..." enquanto o estado de loading estiver ativo */}
+          </Button>
         </Form>
         <Text>Já possui uma conta? <Link href="/login">Faça seu login</Link></Text>
       </FormContainer>
